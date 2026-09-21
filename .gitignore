@@ -1,0 +1,45 @@
+# PyCharm
+.idea/
+*.iml
+
+# Виртуальное окружение
+venv/
+.venv/
+env/
+ENV/
+
+# Скомпилированный Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.so
+
+# Распространение / упаковка
+build/
+dist/
+*.egg-info/
+*.egg
+
+# Переменные окружения и секреты
+.env
+.env.local
+
+# Тесты и покрытие
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# Системные файлы
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Логи
+*.log
+
+# Базы данных (если локальные)
+*.sqlite3
+*.db
