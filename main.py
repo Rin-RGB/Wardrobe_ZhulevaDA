@@ -1,343 +1,403 @@
-import datetime
-
-wardrobe = []
-
-
-def get_current_season():
-    month = datetime.datetime.now().month
-    if month in (12, 1, 2): return "зима"
-    if month in (3, 4, 5): return "весна"
-    if month in (6, 7, 8): return "лето"
-    return "осень"
+from typing import Optional
+from models import ClothingItem, Outfit, User
+from storage import (
+    list_users, load_user_data, save_user_data, user_exists,
+)
+from utils import (
+    get_current_season, input_category, input_price,
+    input_quantity, input_season, input_style, input_occasion,
+)
 
 
-def init_wardrobe():
-    wardrobe.extend([
-        {
-            'name': 'Джинсы',
-            'category': 'низ',
-            'color': 'синий',
-            'season': 'демисезон',
-            'price': 3500.0,
-            'quantity': 2,
-            'total': 7000.0
-        },
-        {
-            'name': 'Футболка',
-            'category': 'верх',
-            'color': 'белый',
-            'season': 'лето',
-            'price': 800.0,
-            'quantity': 3,
-            'total': 2400.0
-        },
-        {
-            'name': 'Зимние ботинки',
-            'category': 'обувь',
-            'color': 'черный',
-            'season': 'зима',
-            'price': 8500.0,
-            'quantity': 1,
-            'total': 8500.0
-        }
-    ])
-
-
-def validate_item(item):
-    current_season = get_current_season()
-
-    if item['category'] in ("верх", "низ", "обувь", "аксессуар"):
-        category_ok = True
-        category_msg = f"Категория '{item['category']}' корректна."
-    else:
-        category_ok = False
-        category_msg = f"Категория '{item['category']}' неизвестна. Будет отнесена к 'прочее'."
-
-    season = item['season']
-    if season == "всесезон":
-        season_ok = True
-        season_msg = "Вещь всесезонная — подойдёт в любое время года."
-    elif season == current_season:
-        season_ok = True
-        season_msg = f"Вещь подходит для текущего сезона ({current_season})."
-    elif season == "демисезон" and current_season in ("весна", "осень"):
-        season_ok = True
-        season_msg = f"Вещь подходит для текущего сезона ({current_season})."
-    else:
-        season_ok = False
-        season_msg = f"Вещь предназначена для сезона '{season}', а сейчас '{current_season}'."
-
-    price = item['price']
-    if price <= 0:
-        price_msg = "Цена не указана или указана некорректно."
-        price_category = "неизвестно"
-    elif price < 1000:
-        price_msg = "Бюджетная вещь."
-        price_category = "эконом"
-    elif price < 5000:
-        price_msg = "Вещь средней ценовой категории."
-        price_category = "средний"
-    else:
-        price_msg = "Дорогая вещь."
-        price_category = "премиум"
-
-    return {
-        'category_ok': category_ok,
-        'category_msg': category_msg,
-        'season_ok': season_ok,
-        'season_msg': season_msg,
-        'price_msg': price_msg,
-        'price_category': price_category,
-    }
-
-
-def input_category(current=None):
-    valid_categories = ("верх", "низ", "обувь", "аксессуар")
-    prompt_suffix = f" [{current}]" if current else ""
-
+def choose_user() -> Optional[User]:
+    """Выбор существующего пользователя или создание нового."""
     while True:
-        category = input(f"Категория (верх / низ / обувь / аксессуар){prompt_suffix}: ").strip().lower()
+        print("\n=== ВЫБОР ПОЛЬЗОВАТЕЛЯ ===")
+        users = list_users()
 
-        if not category and current:
-            return current
+        if users:
+            print("Существующие пользователи:")
+            for i, name in enumerate(users, 1):
+                print(f"  {i}. {name}")
+            print(f"  {len(users) + 1}. Создать нового пользователя")
+        else:
+            print("Пока нет зарегистрированных пользователей.")
+            print("  1. Создать нового пользователя")
 
-        if category in valid_categories:
-            return category
+        print("  0. Выйти из программы")
 
-        print(f"\nЭто не стандартная категория ('{category}').")
-        print("Вещь будет отнесена к категории 'прочее'.")
-        confirm = input("Уточнить категорию? (Enter — принять 'прочее', или введите новую категорию): ").strip().lower()
+        raw = input("\nВыберите пункт: ").strip()
+        if not raw or raw == "0":
+            return None
 
-        if not confirm:
-            return "прочее"
-
-        if confirm in valid_categories:
-            return confirm
-
-        print(f"Категория '{confirm}' тоже не стандартная. Попробуйте ещё раз.\n")
-
-
-def input_season(current=None):
-    valid_seasons = ['лето', 'зима', 'демисезон', 'всесезон']
-    prompt_suffix = f" [{current}]" if current else ""
-
-    while True:
-        season = input(f"Сезон (лето / зима / демисезон / всесезон){prompt_suffix}: ").strip().lower()
-
-        if not season and current:
-            return current
-
-        if season in valid_seasons:
-            return season
-
-        if season in ('осень', 'весна'):
-            print(f"\nВы указали '{season}', который относится к демисезону.")
-            confirm = input("Указать 'демисезон'? (Enter — да, или введите другой сезон): ").strip().lower()
-
-            if not confirm:
-                return "демисезон"
-
-            if confirm in valid_seasons:
-                return confirm
-
-            print(f"Сезон '{confirm}' не распознан. Попробуйте ещё раз.\n")
+        if not raw.isdigit():
+            print("Нужно ввести число.")
             continue
 
-        print(f"\nСезон '{season}' не распознан.")
-        print("Вещь будет определена как всесезонная.")
-        confirm = input("Вы согласны? (Enter — да, или введите правильный сезон): ").strip().lower()
+        choice = int(raw)
 
-        if not confirm:
-            return "всесезон"
+        if users and 1 <= choice <= len(users):
+            name = users[choice - 1]
+            user = User(user_id=1, name=name)
+            load_user_data(user)
+            print(f"\nЗдравствуйте, {user.name}!")
+            return user
 
-        if confirm in valid_seasons:
-            return confirm
+        if (not users and choice == 1) or (users and choice == len(users) + 1):
+            name = input("Введите имя нового пользователя: ").strip()
+            if not name:
+                print("Имя не может быть пустым.")
+                continue
+            if user_exists(name):
+                print(f"Пользователь '{name}' уже существует.")
+                continue
+            # Создаём пользователя без начальных вещей
+            user = User(user_id=1, name=name)
+            save_user_data(user)
+            print(f"\nПользователь '{name}' создан. "
+                  f"Гардероб пуст — можете добавить вещи.")
+            return user
 
-        print(f"Сезон '{confirm}' не распознан. Попробуйте ещё раз.\n")
+        print("Неверный ввод.")
 
 
-def add_item():
-    item_name = input("Название вещи (например, 'Джинсы'): ").strip() or "Без названия"
-    category = input_category()
+def print_item_details(item: ClothingItem) -> None:
+    current_season = get_current_season()
+    season_ok = item.is_suitable_for_season(current_season)
+    season_msg = (
+        f"подходит для текущего сезона ({current_season})"
+        if season_ok
+        else f"предназначена для '{item.season}', а сейчас '{current_season}'"
+    )
+
+    print(f"\nВещь: {item.name}")
+    print(f"Категория: {item.category}")
+    print(f"Цвет: {item.color}")
+    print(f"Стиль: {item.style}")
+    print(f"Сезон: {item.season} — "
+          f"{season_msg}")
+    print(f"Цена: {item.price:.2f} руб."
+          f" — категория: {item.get_price_category()}")
+    print(f"Количество: {item.quantity}")
+    print(f"Общая стоимость: {item.total_cost:.2f} руб.")
+
+
+def add_item(user: User) -> None:
+    name = input("Название вещи: ").strip() or "Без названия"
+    category = input_category(user)
     color = input("Цвет вещи: ").strip().lower()
     season = input_season()
+    style = input_style()
+    price = input_price()
+    quantity = input_quantity()
 
-    price_str = input("Цена вещи (в рублях): ").strip().replace(',', '.')
-    quantity_str = input("Количество таких вещей: ").strip()
+    new_item = ClothingItem(
+        item_id=user.get_next_item_id(),
+        name=name,
+        category=category,
+        color=color,
+        season=season,
+        price=price,
+        quantity=quantity,
+        style=style,
+    )
 
-    price = float(price_str) if price_str.replace(".", "", 1).isdigit() else 0.0
-    quantity = int(quantity_str) if quantity_str.isdigit() else 1
-
-    item = {
-        'name': item_name,
-        'category': category,
-        'color': color,
-        'season': season,
-        'price': price,
-        'quantity': quantity,
-    }
-    item['total'] = item['price'] * item['quantity']
-    wardrobe.append(item)
-
-    v = validate_item(item)
-
-    print(f"\nВещь: {item['name']}")
-    print(f"Категория: {item['category']} — {v['category_msg']}")
-    print(f"Цвет: {item['color']}")
-    print(f"Сезон: {item['season']} — {v['season_msg']}")
-    print(f"Цена: {item['price']:.2f} руб. — {v['price_msg']} (категория: {v['price_category']})")
-    print(f"Количество: {item['quantity']}")
-    print(f"Общая стоимость: {item['total']:.2f} руб.")
-
-    print("\nРЕКОМЕНДАЦИЯ")
-    if v['category_ok'] and v['season_ok'] and item['quantity'] > 0 and item['price'] > 0:
-        print(f"Вещь '{item['name']}' успешно добавлена в гардероб.")
-    elif not v['category_ok']:
-        print(f"Вещь '{item['name']}' добавлена, но её категория требует уточнения.")
-    elif not v['season_ok']:
-        print(f"Вещь '{item['name']}' добавлена, но сейчас не сезон для неё.")
-    else:
-        print(f"Вещь '{item['name']}' добавлена с предупреждениями.")
-
-
-def view_wardrobe():
-    if not wardrobe:
-        print("\nВаш гардероб пока пуст.\n")
+    similar = user.find_similar(new_item)
+    if similar is not None:
+        similar.quantity += quantity
+        similar.price = price
+        print(f"\nПохожая вещь уже есть: '"
+              f"{similar.name}'.")
+        print(f"Количество увеличено на {quantity}."
+              f" Теперь: {similar.quantity}.")
+        print_item_details(similar)
+        save_user_data(user)
         return
 
-    print("\nВАШ ГАРДЕРОБ")
-    total_cost = 0
-    for i, item in enumerate(wardrobe, 1):
-        print(f"{i}. {item['name']} | Категория: {item['category']} | Цвет: {item['color']} | Сезон: {item['season']}")
-        print(f"   Цена: {item['price']:.2f} руб. | Кол-во: {item['quantity']} | Сумма: {item['total']:.2f} руб.")
-        total_cost += item['total']
-    print(f"\nВсего вещей: {len(wardrobe)}")
-    print(f"Общая стоимость гардероба: {total_cost:.2f} руб.")
+    user.add_clothing(new_item)
+    print_item_details(new_item)
+    print(f"\nВещь '{new_item.name}' добавлена в гардероб.")
+    save_user_data(user)
 
 
-def pick_item(prompt="Выберите номер вещи"):
-    if not wardrobe:
-        print("\nГардероб пуст — нечего выбирать.\n")
+def view_wardrobe(user: User) -> None:
+    if not user.wardrobe:
+        print("\nГардероб пуст.\n")
+        return
+
+    print(f"\nГАРДЕРОБ {user.name}")
+    for i, item in enumerate(user.wardrobe, 1):
+        print(f"{i}. {item}")
+
+    total_items = sum(item.quantity for item in user.wardrobe)
+    print(f"\nВсего позиций: {len(user.wardrobe)}")
+    print(f"Всего вещей: {total_items}")
+    print(f"Общая стоимость: "
+          f"{user.get_wardrobe_cost():.2f} руб.")
+
+
+def pick_item(user: User, prompt: str = "Выберите номер вещи")\
+        -> Optional[ClothingItem]:
+    if not user.wardrobe:
+        print("\nГардероб пуст.\n")
         return None
 
     print("\nСПИСОК ВЕЩЕЙ")
-    for i, item in enumerate(wardrobe, 1):
-        print(f"{i}. {item['name']} | {item['category']} | {item['color']} | {item['season']} | "
-              f"{item['price']:.2f} руб. x {item['quantity']}")
+    for i, item in enumerate(user.wardrobe, 1):
+        print(f"{i}. {item}")
 
-    raw = input(f"\n{prompt} (1-{len(wardrobe)}, 0 — отмена): ").strip()
-    if not raw or raw == '0':
+    raw = input(f"\n{prompt} (1-{len(user.wardrobe)}, 0 — отмена): ").strip()
+    if not raw or raw == "0":
         print("Действие отменено.")
         return None
-
     if not raw.isdigit():
         print("Нужно ввести число.")
         return None
 
     idx = int(raw) - 1
-    if idx < 0 or idx >= len(wardrobe):
+    if idx < 0 or idx >= len(user.wardrobe):
         print("Нет вещи с таким номером.")
         return None
+    return user.wardrobe[idx]
 
-    return idx
 
-
-def delete_item():
-    idx = pick_item("Какую вещь удалить?")
-    if idx is None:
+def delete_item(user: User) -> None:
+    item = pick_item(user, "Какую вещь убрать?")
+    if item is None:
         return
 
-    item = wardrobe[idx]
-    confirm = input(f"Удалить '{item['name']}' ({item['category']}, {item['color']})? (y/n): ").strip().lower()
-    if confirm != 'y':
-        print("Удаление отменено.")
+    if item.quantity > 1:
+        confirm = input(
+            f"Убрать 1 штуку '{item.name}'? "
+            f"(Останется {item.quantity - 1}) (y/n): "
+        ).strip().lower()
+        if confirm != "y":
+            print("Действие отменено.")
+            return
+
+        item.quantity -= 1
+        print(f"Убрана 1 штука. Осталось: {item.quantity}.")
+        save_user_data(user)
+    else:
+        confirm = input(
+            f"Удалить '{item.name}' ({item.category}, "
+            f"{item.color}) полностью? (y/n): "
+        ).strip().lower()
+        if confirm != "y":
+            print("Удаление отменено.")
+            return
+
+        user.wardrobe.remove(item)
+        print(f"Вещь '{item.name}' удалена.")
+        save_user_data(user)
+
+
+def edit_item(user: User) -> None:
+    item = pick_item(user, "Какую вещь редактировать?")
+    if item is None:
         return
 
-    removed = wardrobe.pop(idx)
-    print(f"Вещь '{removed['name']}' удалена из гардероба.")
-
-
-def edit_item():
-    idx = pick_item("Какую вещь редактировать?")
-    if idx is None:
-        return
-
-    item = wardrobe[idx]
-    print(f"\nРедактируем: {item['name']}")
+    print(f"\nРедактируем: {item.name}")
     print("(Нажмите Enter, чтобы оставить текущее значение)\n")
 
-    new_val = input(f"Название [{item['name']}]: ").strip()
+    new_val = input(f"Название [{item.name}]: ").strip()
     if new_val:
-        item['name'] = new_val
+        item.name = new_val
 
-    item['category'] = input_category(item['category'])
-
-    new_val = input(f"Цвет [{item['color']}]: ").strip().lower()
+    new_val = input(f"Категория [{item.category}]: ").strip().lower()
     if new_val:
-        item['color'] = new_val
+        item.category = input_category(user)
 
-    item['season'] = input_season(item['season'])
+    new_val = input(f"Цвет [{item.color}]: ").strip().lower()
+    if new_val:
+        item.color = new_val
 
-    new_val = input(f"Цена [{item['price']:.2f}]: ").strip().replace(',', '.')
+    new_val = input(f"Сезон [{item.season}]: ").strip().lower()
+    if new_val:
+        item.season = input_season()
+
+    new_val = input(f"Стиль [{item.style}]: ").strip().lower()
+    if new_val:
+        item.style = input_style()
+
+    new_val = input(f"Цена [{item.price:.2f}]: ").strip().replace(",", ".")
     if new_val:
         if new_val.replace(".", "", 1).isdigit():
-            item['price'] = float(new_val)
+            item.price = float(new_val)
         else:
             print("Некорректная цена, оставлено прежнее значение.")
 
-    new_val = input(f"Количество [{item['quantity']}]: ").strip()
+    new_val = input(f"Количество [{item.quantity}]: ").strip()
     if new_val:
-        if new_val.isdigit():
-            item['quantity'] = int(new_val)
+        if new_val.isdigit() and int(new_val) > 0:
+            item.quantity = int(new_val)
         else:
             print("Некорректное количество, оставлено прежнее значение.")
 
-    item['total'] = item['price'] * item['quantity']
-
-    v = validate_item(item)
-
-    print(f"\nОбновлённая вещь:")
-    print(f"Вещь: {item['name']}")
-    print(f"Категория: {item['category']} — {v['category_msg']}")
-    print(f"Цвет: {item['color']}")
-    print(f"Сезон: {item['season']} — {v['season_msg']}")
-    print(f"Цена: {item['price']:.2f} руб. — {v['price_msg']} (категория: {v['price_category']})")
-    print(f"Количество: {item['quantity']}")
-    print(f"Общая стоимость: {item['total']:.2f} руб.")
-
-    print("\nРЕКОМЕНДАЦИЯ")
-    if v['category_ok'] and v['season_ok'] and item['quantity'] > 0 and item['price'] > 0:
-        print(f"Вещь '{item['name']}' обновлена без замечаний.")
-    elif not v['category_ok']:
-        print(f"Вещь '{item['name']}' обновлена, но её категория требует уточнения.")
-    elif not v['season_ok']:
-        print(f"Вещь '{item['name']}' обновлена, но сейчас не сезон для неё.")
-    else:
-        print(f"Вещь '{item['name']}' обновлена с предупреждениями.")
+    print_item_details(item)
+    print(f"\nВещь '{item.name}' обновлена.")
+    save_user_data(user)
 
 
-init_wardrobe()
+def create_outfit(user: User) -> None:
+    if len(user.wardrobe) < 2:
+        print("\nНужно хотя бы 2 вещи для создания образа.\n")
+        return
 
-while True:
-    print("\nМЕНЮ:")
-    print("1. Добавить вещь")
-    print("2. Посмотреть гардероб")
-    print("3. Удалить вещь")
-    print("4. Редактировать вещь")
-    print("5. Выйти")
+    name = input("Название образа: ").strip() or "Без названия"
+    occasion = input_occasion()
+    season = (input("Сезон образа (лето / зима / демисезон / всесезон): ")
+              .strip().lower())
+    if season not in ClothingItem.VALID_SEASONS:
+        season = "всесезон"
 
-    choice = input("Выберите пункт меню (1-5): ").strip()
+    outfit = Outfit(
+        outfit_id=user.get_next_outfit_id(),
+        name=name,
+        occasion=occasion,
+        season=season,
+    )
 
-    if choice == '1':
-        add_item()
-    elif choice == '2':
-        view_wardrobe()
-    elif choice == '3':
-        delete_item()
-    elif choice == '4':
-        edit_item()
-    elif choice == '5':
-        print("Спасибо за использование системы!")
-        break
-    else:
-        print("Неверный ввод, попробуйте снова.")
+    print("\nВыберите вещи для образа (вводите номера, 0 — готово):")
+    for i, item in enumerate(user.wardrobe, 1):
+        print(f"{i}. {item}")
+
+    while True:
+        raw = input("Номер вещи: ").strip()
+        if raw == "0" or not raw:
+            break
+        if not raw.isdigit():
+            print("Нужно ввести число.")
+            continue
+        idx = int(raw) - 1
+        if idx < 0 or idx >= len(user.wardrobe):
+            print("Нет вещи с таким номером.")
+            continue
+        outfit.add_item(user.wardrobe[idx])
+        print(f"  Добавлено: {user.wardrobe[idx].name}")
+
+    user.add_outfit(outfit)
+    save_user_data(user)
+    print(f"\n{outfit}")
+    print(f"Образ '{outfit.name}' создан.")
+
+
+def view_outfits(user: User) -> None:
+    if not user.outfits:
+        print("\nУ вас пока нет образов.\n")
+        return
+
+    print(f"\nОБРАЗЫ {user.name}")
+    for i, outfit in enumerate(user.outfits, 1):
+        print(f"\n{i}. {outfit}")
+
+
+def auto_suggest_outfit(user: User) -> None:
+    season = get_current_season()
+    print(f"\nТекущий сезон: {season}")
+    occasion = input_occasion()
+
+    print(f"Подбираю образ: сезон '{season}', повод '{occasion}'...")
+
+    outfit = user.suggest_outfit(season, occasion)
+    if outfit is None:
+        print("Не удалось подобрать образ — нет подходящих вещей.")
+        return
+
+    user.add_outfit(outfit)
+    save_user_data(user)
+    print(f"\n{outfit}")
+    if not outfit.is_complete():
+        print("⚠ Образ неполный — "
+              "не хватает верха или низа подходящего стиля.")
+    print("Авто-образ сохранён. Вы можете дополнить его вручную.")
+
+
+def manage_categories(user: User) -> None:
+    """Меню управления категориями."""
+    while True:
+        print("\nУПРАВЛЕНИЕ КАТЕГОРИЯМИ")
+        for i, cat in enumerate(user.categories, 1):
+            items_count = sum(1 for item in user.wardrobe
+                              if item.category.id == cat.id)
+            print(f"  {i}. {cat} (вещей: {items_count})")
+        print("  0. Назад")
+
+        raw = (input("\nВыберите категорию для удаления (номер) или 0: ")
+               .strip())
+        if not raw or raw == "0":
+            return
+        if not raw.isdigit():
+            print("Нужно ввести число.")
+            continue
+
+        idx = int(raw) - 1
+        if idx < 0 or idx >= len(user.categories):
+            print("Нет такой категории.")
+            continue
+
+        cat = user.categories[idx]
+        if not user.remove_category(cat.id):
+            print(f"Нельзя удалить '{cat}' — есть вещи этой категории.")
+            continue
+        print(f"Категория '{cat}' удалена.")
+        save_user_data(user)
+
+
+def wardrobe_menu(user: User) -> None:
+    """Меню гардероба для конкретного пользователя."""
+    while True:
+        print(f"\nМЕНЮ ({user.name}):")
+        print("1. Добавить вещь")
+        print("2. Посмотреть гардероб")
+        print("3. Убрать вещь (уменьшить количество / удалить)")
+        print("4. Редактировать вещь")
+        print("5. Создать образ")
+        print("6. Посмотреть образы")
+        print("7. Автоподбор образа")
+        print("8. Управление категориями")
+        print("9. Сменить пользователя")
+        print("10. Выйти из программы")
+
+        choice = input("Выберите пункт (1-10): ").strip()
+
+        if choice == "1":
+            add_item(user)
+        elif choice == "2":
+            view_wardrobe(user)
+        elif choice == "3":
+            delete_item(user)
+        elif choice == "4":
+            edit_item(user)
+        elif choice == "5":
+            create_outfit(user)
+        elif choice == "6":
+            view_outfits(user)
+        elif choice == "7":
+            auto_suggest_outfit(user)
+        elif choice == "8":
+            manage_categories(user)
+        elif choice == "9":
+            save_user_data(user)
+            print(f"Данные пользователя '{user.name}' сохранены.")
+            return  # вернуться к выбору пользователя
+        elif choice == "10":
+            save_user_data(user)
+            print("Данные сохранены. До свидания!")
+            exit(0)
+        else:
+            print("Неверный ввод.")
+
+
+def main() -> None:
+    """Главный цикл: выбор пользователя → работа с гардеробом."""
+    while True:
+        user = choose_user()
+        if user is None:
+            print("До свидания!")
+            break
+        wardrobe_menu(user)
+
+
+if __name__ == "__main__":
+    main()
