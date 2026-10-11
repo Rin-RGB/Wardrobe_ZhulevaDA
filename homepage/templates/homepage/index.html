@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block title %}Главная — Умный гардероб{% endblock %}
+
+{% block content %}
+<div class="p-5 mb-4 bg-light rounded-3">
+    <h1 class="display-4">Умный гардероб</h1>
+    <p class="lead">Система учёта одежды и подбора образов.</p>
+    <hr class="my-4">
+    <p>Приложение позволяет вести учёт вещей, группировать их по категориям и сезонам,
+       а также собирать готовые образы.</p>
+    <a class="btn btn-primary btn-lg me-2" href="{% url 'outfits:outfit_list' %}">Образы</a>
+    <a class="btn btn-outline-secondary btn-lg" href="{% url 'accounts:user_list' %}">Пользователи</a>
+    <a class="btn btn-outline-secondary btn-lg" href="{% url 'wardrobe:clothing_list' %}">Все вещи</a>
+</div>
+
+{% endblock %}

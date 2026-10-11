@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block title %}Образы{% endblock %}
+
+{% block content %}
+<a href="{% url 'homepage:index' %}" class="btn btn-outline-secondary mb-3">← На главную</a>
+
+<h1>Образы</h1>
+{% if outfits %}
+<div class="row">
+    {% for outfit in outfits %}
+    <div class="col-md-6 mb-3">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <a href="{% url 'outfits:outfit_detail' outfit.id %}">{{ outfit.name }}</a>
+                </h5>
+                <p class="card-text">
+                    Владелец: <strong>{{ outfit.user.name }}</strong><br>
+                    Повод: {{ outfit.get_occasion_display }} | Сезон: {{ outfit.season }}
+                </p>
+                <p>Вещей: {{ outfit.items.count }} | Стоимость: {{ outfit.total_cost|floatformat:2 }} ₽</p>
+                {% if outfit.is_complete %}
+                    <span class="badge bg-success">Полный образ</span>
+                {% else %}
+                    <span class="badge bg-warning">Неполный</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<p class="alert alert-info">Образов пока нет.</p>
+{% endif %}
+{% endblock %}

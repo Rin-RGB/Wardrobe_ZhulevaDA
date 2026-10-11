@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}Все вещи{% endblock %}
+
+{% block content %}
+<a href="{% url 'homepage:index' %}" class="btn btn-outline-secondary mb-3">← На главную</a>
+
+<h1>Все вещи</h1>
+<p>Всего позиций: <strong>{{ items|length }}</strong> | Всего вещей: <strong>{{ total_items }}</strong></p>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Название</th><th>Владелец</th><th>Категория</th>
+            <th>Цвет</th><th>Сезон</th><th>Цена</th><th>Кол-во</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in items %}
+        <tr>
+            <td><a href="{% url 'wardrobe:clothing_detail' item.id %}">{{ item.name }}</a></td>
+            <td><a href="{% url 'accounts:user_detail' item.user.id %}">{{ item.user.name }}</a></td>
+            <td>{{ item.category|default:"—" }}</td>
+            <td>{{ item.color }}</td>
+            <td>{{ item.get_season_display }}</td>
+            <td>{{ item.price }} ₽</td>
+            <td>{{ item.quantity }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

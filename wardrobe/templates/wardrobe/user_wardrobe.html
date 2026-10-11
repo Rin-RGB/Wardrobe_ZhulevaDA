@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block title %}Гардероб {{ user.name }}{% endblock %}
+
+{% block content %}
+<h1>Гардероб {{ user.name }}</h1>
+<p>Всего вещей: {{ total_items }} | Стоимость: {{ total_cost|floatformat:2 }} ₽</p>
+{% if items %}
+<ul class="list-group">
+    {% for item in items %}
+    <li class="list-group-item">
+        <a href="{% url 'wardrobe:clothing_detail' item.id %}">{{ item.name }}</a>
+        — {{ item.category|default:"—" }}, {{ item.color }}, {{ item.get_season_display }}
+        <span class="badge bg-primary float-end">{{ item.quantity }} шт.</span>
+    </li>
+    {% endfor %}
+</ul>
+{% else %}
+<p class="alert alert-info">Гардероб пуст.</p>
+{% endif %}
+{% endblock %}

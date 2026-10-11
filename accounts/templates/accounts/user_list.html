@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block title %}Пользователи{% endblock %}
+
+{% block content %}
+<a href="{% url 'homepage:index' %}" class="btn btn-outline-secondary mb-3">← На главную</a>
+
+<h1>Пользователи</h1>
+{% if users %}
+<div class="row">
+    {% for user in users %}
+    <div class="col-md-4 mb-3">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{{ user.name }}</h5>
+                <p class="card-text text-muted">{{ user.email }}</p>
+                <p>Вещей: {{ user.get_items_count }}</p>
+                <p>Стоимость гардероба: {{ user.get_wardrobe_cost|floatformat:2 }} ₽</p>
+                <a href="{% url 'accounts:user_detail' user.id %}" class="btn btn-primary">Подробнее</a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<p class="alert alert-info">Пользователей пока нет.</p>
+{% endif %}
+{% endblock %}
