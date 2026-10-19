@@ -2,30 +2,41 @@
 {% block title %}Образы{% endblock %}
 
 {% block content %}
-<a href="{% url 'homepage:index' %}" class="btn btn-outline-secondary mb-3">← На главную</a>
+<a href="{% url 'homepage:index' %}" class="btn btn-outline-secondary btn-back">← На главную</a>
 
 <h1>Образы</h1>
+<p>Всего образов: <strong>{{ outfits|length }}</strong></p>
+
 {% if outfits %}
 <div class="row">
     {% for outfit in outfits %}
     <div class="col-md-6 mb-3">
-        <div class="card">
+        <div class="card clothing-card">
             <div class="card-body">
                 <h5 class="card-title">
-                    <a href="{% url 'outfits:outfit_detail' outfit.id %}">{{ outfit.name }}</a>
+                    <a href="{% url 'outfits:outfit_detail' outfit.id %}">
+                        {{ outfit.name|default:"Без названия" }}
+                    </a>
                 </h5>
                 <p class="card-text">
                     Владелец: <strong>{{ outfit.user.name }}</strong><br>
                     Повод: {{ outfit.get_occasion_display }} | Сезон: {{ outfit.season }}
                 </p>
-                <p>Вещей: {{ outfit.items.count }} | Стоимость: {{ outfit.total_cost|floatformat:2 }} ₽</p>
+                <p>
+                    Вещей: {{ outfit.items.count }} |
+                    Стоимость: {{ outfit.total_cost|floatformat:2 }} ₽
+                </p>
                 {% if outfit.is_complete %}
-                    <span class="badge bg-success">Полный образ</span>
+                    <span class="outfit-status outfit-status-complete">Полный образ</span>
                 {% else %}
-                    <span class="badge bg-warning">Неполный</span>
+                    <span class="outfit-status outfit-status-incomplete">Неполный</span>
                 {% endif %}
             </div>
         </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <p class="alert alert-info">Образов пока нет.</p>
     </div>
     {% endfor %}
 </div>

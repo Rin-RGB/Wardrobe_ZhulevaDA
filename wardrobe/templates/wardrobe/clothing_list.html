@@ -2,11 +2,15 @@
 {% block title %}Все вещи{% endblock %}
 
 {% block content %}
-<a href="{% url 'homepage:index' %}" class="btn btn-outline-secondary mb-3">← На главную</a>
+<a href="{% url 'homepage:index' %}" class="btn btn-outline-secondary btn-back">← На главную</a>
 
 <h1>Все вещи</h1>
-<p>Всего позиций: <strong>{{ items|length }}</strong> | Всего вещей: <strong>{{ total_items }}</strong></p>
+<p>
+    Всего позиций: <strong>{{ items|length }}</strong> |
+    Всего вещей: <strong>{{ total_items }}</strong>
+</p>
 
+{% if items %}
 <table class="table table-striped">
     <thead>
         <tr>
@@ -17,15 +21,22 @@
     <tbody>
         {% for item in items %}
         <tr>
-            <td><a href="{% url 'wardrobe:clothing_detail' item.id %}">{{ item.name }}</a></td>
+            <td><a href="{% url 'wardrobe:clothing_detail' item.id %}">{{ item.name|default:"Без названия" }}</a></td>
             <td><a href="{% url 'accounts:user_detail' item.user.id %}">{{ item.user.name }}</a></td>
             <td>{{ item.category|default:"—" }}</td>
             <td>{{ item.color }}</td>
             <td>{{ item.get_season_display }}</td>
-            <td>{{ item.price }} ₽</td>
+            <td>{{ item.price|floatformat:2 }} ₽</td>
             <td>{{ item.quantity }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="7" class="text-center">Вещей пока нет.</td>
         </tr>
         {% endfor %}
     </tbody>
 </table>
+{% else %}
+<div class="alert alert-info">Вещей пока нет.</div>
+{% endif %}
 {% endblock %}

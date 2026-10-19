@@ -1,0 +1,28 @@
+{% load static %}
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+    <div class="container">
+        <a class="navbar-brand d-flex align-items-center" href="{% url 'homepage:index' %}">
+            <img src="{% static 'homepage/img/logo.png' %}" alt="Логотип" class="wardrobe-logo">
+            <span>Умный гардероб</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'homepage:index' %}">Главная</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'accounts:user_list' %}">Пользователи</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'wardrobe:clothing_list' %}">Все вещи</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'outfits:outfit_list' %}">Образы</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>

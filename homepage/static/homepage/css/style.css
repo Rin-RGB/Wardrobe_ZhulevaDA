@@ -1,0 +1,75 @@
+/* Собственные стили проекта "Умный гардероб" */
+
+body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+main.container {
+    flex: 1;
+}
+
+/* Логотип в шапке */
+.wardrobe-logo {
+    width: 60px;
+    height: auto;
+    margin-right: 1rem;
+    border-radius: 8px;
+}
+
+/* Карточки вещей */
+.clothing-card {
+    transition: transform 0.2s, box-shadow 0.2s;
+    border: 1px solid #e0e0e0;
+}
+
+.clothing-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Бейджи статусов образов */
+.outfit-status {
+    font-weight: 600;
+    padding: 0.25rem 0.75rem;
+    border-radius: 4px;
+}
+
+.outfit-status-complete {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.outfit-status-incomplete {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+/* Подвал */
+footer.site-footer {
+    background-color: #f8f9fa;
+    padding: 1rem 0;
+    margin-top: 2rem;
+    border-top: 1px solid #dee2e6;
+    text-align: center;
+    color: #6c757d;
+}
+
+/* Кнопки "Назад" */
+.btn-back {
+    margin-bottom: 1rem;
+}
+
+/* Заголовок главной */
+.hero-section {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.hero-section h1 {
+    color: white;
+}

@@ -1,16 +1,52 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block title %}Главная — Умный гардероб{% endblock %}
 
 {% block content %}
-<div class="p-5 mb-4 bg-light rounded-3">
+<div class="hero-section">
     <h1 class="display-4">Умный гардероб</h1>
     <p class="lead">Система учёта одежды и подбора образов.</p>
     <hr class="my-4">
     <p>Приложение позволяет вести учёт вещей, группировать их по категориям и сезонам,
        а также собирать готовые образы.</p>
-    <a class="btn btn-primary btn-lg me-2" href="{% url 'outfits:outfit_list' %}">Образы</a>
-    <a class="btn btn-outline-secondary btn-lg" href="{% url 'accounts:user_list' %}">Пользователи</a>
-    <a class="btn btn-outline-secondary btn-lg" href="{% url 'wardrobe:clothing_list' %}">Все вещи</a>
+    <a class="btn btn-light btn-lg me-2" href="{% url 'accounts:user_list' %}">Пользователи</a>
+    <a class="btn btn-outline-light btn-lg me-2" href="{% url 'wardrobe:clothing_list' %}">Все вещи</a>
+    <a class="btn btn-outline-light btn-lg" href="{% url 'outfits:outfit_list' %}">Образы</a>
 </div>
 
+{% if recent_outfits %}
+<h2 class="mt-4">Последние образы
+    <span class="badge bg-secondary">{{ recent_outfits|length }}</span>
+</h2>
+<div class="row">
+    {% for outfit in recent_outfits %}
+    <div class="col-md-4 mb-3">
+        <div class="card clothing-card h-100">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <a href="{% url 'outfits:outfit_detail' outfit.id %}">
+                        {{ outfit.name|default:"Без названия" }}
+                    </a>
+                </h5>
+                <p class="card-text">
+                    Владелец: <strong>{{ outfit.user.name }}</strong><br>
+                    Повод: {{ outfit.get_occasion_display }}<br>
+                    Сезон: {{ outfit.season }}
+                </p>
+                <p class="card-text">
+                    <small class="text-muted">
+                        Вещей: {{ outfit.items.count }} |
+                        Стоимость: {{ outfit.total_cost|floatformat:2 }} ₽
+                    </small>
+                </p>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="alert alert-info">
+    Образов пока нет. Создайте первый образ через админку.
+</div>
+{% endif %}
 {% endblock %}
