@@ -2,32 +2,32 @@
 {% block title %}Пользователи{% endblock %}
 
 {% block content %}
-<a href="{% url 'homepage:index' %}" class="btn btn-outline-secondary btn-back">← На главную</a>
+<a href="{% url 'homepage:index' %}" class="btn btn-outline-secondary mb-3">← На главную</a>
 
-<h1>Пользователи</h1>
-<p>Всего пользователей: <strong>{{ users|length }}</strong></p>
+<h2>Пользователи</h2>
+<p>Всего пользователей: {{ users|length }}</p>
 
 {% if users %}
 <div class="row">
     {% for user in users %}
-    <div class="col-md-4 mb-3">
-        <div class="card clothing-card">
+    <div class="col-md-6 mb-3">
+        <div class="card">
             <div class="card-body">
                 <h5 class="card-title">{{ user.name|default:"Без имени" }}</h5>
-                <p class="card-text text-muted">{{ user.email }}</p>
-                <p>Вещей: {{ user.get_items_count }}</p>
-                <p>Стоимость гардероба: {{ user.get_wardrobe_cost|floatformat:2 }} ₽</p>
+                <p class="card-text">{{ user.email }}</p>
+                <p class="card-text">
+                    <small class="text-muted">
+                        Вещей: {{ user.items_count }} |
+                        Стоимость гардероба: {{ user.total_cost|floatformat:2 }} ₽
+                    </small>
+                </p>
                 <a href="{% url 'accounts:user_detail' user.id %}" class="btn btn-primary">Подробнее</a>
             </div>
         </div>
     </div>
-    {% empty %}
-    <div class="col-12">
-        <p class="alert alert-info">Пользователей пока нет.</p>
-    </div>
     {% endfor %}
 </div>
 {% else %}
-<p class="alert alert-info">Пользователей пока нет.</p>
+<p class="text-muted">Пользователей пока нет.</p>
 {% endif %}
 {% endblock %}

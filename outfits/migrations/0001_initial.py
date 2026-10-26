@@ -5,30 +5,77 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('accounts', '0001_initial'),
-        ('wardrobe', '0001_initial'),
+        ("accounts", "0001_initial"),
+        ("wardrobe", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Outfit',
+            name="Outfit",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=100, verbose_name='Название')),
-                ('occasion', models.CharField(choices=[('casual', 'Повседневный'), ('business', 'Деловой'), ('evening', 'Вечерний'), ('sport', 'Спортивный'), ('festive', 'Праздничный')], default='casual', max_length=20, verbose_name='Повод')),
-                ('season', models.CharField(default='всесезон', max_length=50, verbose_name='Сезон')),
-                ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='Дата создания')),
-                ('items', models.ManyToManyField(blank=True, related_name='in_outfits', to='wardrobe.clothingitem', verbose_name='Вещи')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='outfits', to='accounts.wardrobeuser', verbose_name='Владелец')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=100, verbose_name="Название")),
+                (
+                    "occasion",
+                    models.CharField(
+                        choices=[
+                            ("casual", "Повседневный"),
+                            ("business", "Деловой"),
+                            ("evening", "Вечерний"),
+                            ("sport", "Спортивный"),
+                            ("festive", "Праздничный"),
+                        ],
+                        default="casual",
+                        max_length=20,
+                        verbose_name="Повод",
+                    ),
+                ),
+                (
+                    "season",
+                    models.CharField(
+                        default="всесезон", max_length=50, verbose_name="Сезон"
+                    ),
+                ),
+                (
+                    "created_at",
+                    models.DateTimeField(
+                        auto_now_add=True, verbose_name="Дата создания"
+                    ),
+                ),
+                (
+                    "items",
+                    models.ManyToManyField(
+                        blank=True,
+                        related_name="in_outfits",
+                        to="wardrobe.clothingitem",
+                        verbose_name="Вещи",
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="outfits",
+                        to="accounts.wardrobeuser",
+                        verbose_name="Владелец",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Образ',
-                'verbose_name_plural': 'Образы',
-                'ordering': ['-created_at'],
+                "verbose_name": "Образ",
+                "verbose_name_plural": "Образы",
+                "ordering": ["-created_at"],
             },
         ),
     ]

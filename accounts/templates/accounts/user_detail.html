@@ -4,26 +4,33 @@
 {% block content %}
 <a href="{% url 'accounts:user_list' %}" class="btn btn-outline-secondary mb-3">← Назад к списку</a>
 
-<h1>{{ user.name }}</h1>
-<p class="text-muted">{{ user.email }}</p>
-<p>Всего вещей: <strong>{{ total_items }}</strong> | Стоимость гардероба: <strong>{{ total_cost|floatformat:2 }} ₽</strong></p>
+<h2>{{ user.name }}</h2>
+<p><strong>Email:</strong> {{ user.email }}</p>
+<p>
+    <strong>Всего вещей:</strong> {{ user.items_count }} |
+    <strong>Стоимость гардероба:</strong> {{ user.total_cost|floatformat:2 }} ₽
+</p>
 
-<h2 class="mt-4">Гардероб</h2>
+<h3>Гардероб</h3>
 {% if clothing_items %}
-<table class="table table-striped">
+<table class="table">
     <thead>
         <tr>
-            <th>Название</th><th>Категория</th><th>Цвет</th>
-            <th>Сезон</th><th>Цена</th><th>Кол-во</th>
+            <th>Название</th>
+            <th>Категория</th>
+            <th>Цвет</th>
+            <th>Сезон</th>
+            <th>Цена</th>
+            <th>Кол-во</th>
         </tr>
     </thead>
     <tbody>
         {% for item in clothing_items %}
         <tr>
             <td><a href="{% url 'wardrobe:clothing_detail' item.id %}">{{ item.name }}</a></td>
-            <td>{{ item.category|default:"—" }}</td>
+            <td>{{ item.category_name|default:"—" }}</td>
             <td>{{ item.color }}</td>
-            <td>{{ item.get_season_display }}</td>
+            <td>{{ item.season_display }}</td>
             <td>{{ item.price }} ₽</td>
             <td>{{ item.quantity }}</td>
         </tr>
@@ -31,20 +38,20 @@
     </tbody>
 </table>
 {% else %}
-<p class="alert alert-info">Гардероб пуст.</p>
+<p class="text-muted">Гардероб пуст.</p>
 {% endif %}
 
-<h2 class="mt-4">Образы</h2>
+<h3>Образы</h3>
 {% if outfits %}
-<ul class="list-group">
     {% for outfit in outfits %}
-    <li class="list-group-item d-flex justify-content-between">
-        <a href="{% url 'outfits:outfit_detail' outfit.id %}">{{ outfit.name }}</a>
-        <span class="badge bg-secondary">{{ outfit.get_occasion_display }}</span>
-    </li>
+    <div class="card mb-2">
+        <div class="card-body">
+            <a href="{% url 'outfits:outfit_detail' outfit.id %}">{{ outfit.name }}</a>
+            <span class="text-muted">{{ outfit.occasion }}</span>
+        </div>
+    </div>
     {% endfor %}
-</ul>
 {% else %}
-<p class="alert alert-info">Образов пока нет.</p>
+<p class="text-muted">Образов пока нет.</p>
 {% endif %}
 {% endblock %}

@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% block title %}Поиск вещей{% endblock %}
+
+{% block content %}
+<a href="{% url 'wardrobe:clothing_list' %}" class="btn btn-outline-secondary btn-back">← К списку вещей</a>
+
+<h1>Поиск вещей</h1>
+
+<form method="get" class="mb-4">
+    <div class="row">
+        <div class="col-md-4">
+            <label for="season" class="form-label">Сезон:</label>
+            <select name="season" id="season" class="form-select">
+                <option value="">Все сезоны</option>
+                <option value="summer" {% if season == "summer" %}selected{% endif %}>Лето</option>
+                <option value="winter" {% if season == "winter" %}selected{% endif %}>Зима</option>
+                <option value="demiseason" {% if season == "demiseason" %}selected{% endif %}>Демисезон</option>
+                <option value="all_season" {% if season == "all_season" %}selected{% endif %}>Всесезон</option>
+            </select>
+        </div>
+        <div class="col-md-4">
+            <label for="style" class="form-label">Стиль:</label>
+            <select name="style" id="style" class="form-select">
+                <option value="">Все стили</option>
+                <option value="casual" {% if style == "casual" %}selected{% endif %}>Повседневный</option>
+                <option value="formal" {% if style == "formal" %}selected{% endif %}>Деловой</option>
+                <option value="sport" {% if style == "sport" %}selected{% endif %}>Спортивный</option>
+                <option value="street" {% if style == "street" %}selected{% endif %}>Уличный</option>
+                <option value="classic" {% if style == "classic" %}selected{% endif %}>Классический</option>
+                <option value="romantic" {% if style == "romantic" %}selected{% endif %}>Романтический</option>
+            </select>
+        </div>
+        <div class="col-md-4 d-flex align-items-end">
+            <button type="submit" class="btn btn-primary">Найти</button>
+        </div>
+    </div>
+</form>
+
+<h2>Результаты поиска</h2>
+<p>Найдено вещей: <strong>{{ items|length }}</strong></p>
+
+{% if items %}
+<div class="row">
+    {% for item in items %}
+    <div class="col-md-4 mb-3">
+        <div class="card clothing-card">
+            <div class="card-body">
+                <h5 class="card-title">{{ item.name }}</h5>
+                <p class="card-text">
+                    Категория: {{ item.category_name|default:"—" }}<br>
+                    Цвет: {{ item.color }}<br>
+                    Сезон: {{ item.season_display }} | Стиль: {{ item.style_display }}<br>
+                    Цена: {{ item.price|floatformat:2 }} ₽
+                </p>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="alert alert-info">По заданным критериям ничего не найдено.</div>
+{% endif %}
+{% endblock %}

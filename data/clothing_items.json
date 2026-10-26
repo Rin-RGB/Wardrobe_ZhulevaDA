@@ -1,0 +1,7 @@
+[
+  {"id": 1, "user_id": 1, "category_id": 1, "name": "Футболка", "color": "белый", "season": "summer", "style": "casual", "price": 800, "quantity": 3},
+  {"id": 2, "user_id": 1, "category_id": 2, "name": "Джинсы", "color": "синий", "season": "demiseason", "style": "casual", "price": 3500, "quantity": 2},
+  {"id": 3, "user_id": 1, "category_id": 3, "name": "Зимние ботинки", "color": "чёрный", "season": "winter", "style": "casual", "price": 8500, "quantity": 1},
+  {"id": 4, "user_id": 2, "category_id": 1, "name": "Рубашка", "color": "голубой", "season": "all_season", "style": "formal", "price": 4500, "quantity": 1},
+  {"id": 5, "user_id": 2, "category_id": 2, "name": "Брюки", "color": "чёрный", "season": "all_season", "style": "formal", "price": 6000, "quantity": 1}
+]

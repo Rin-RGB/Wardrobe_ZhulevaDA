@@ -3,14 +3,15 @@ from django.db import models
 
 class WardrobeUser(models.Model):
     """Пользователь системы — владелец гардероба и образов."""
-    name = models.CharField('Имя', max_length=100)
-    email = models.EmailField('Email', unique=True)
-    created_at = models.DateTimeField('Дата регистрации', auto_now_add=True)
+
+    name = models.CharField("Имя", max_length=100)
+    email = models.EmailField("Email", unique=True)
+    created_at = models.DateTimeField("Дата регистрации", auto_now_add=True)
 
     class Meta:
-        verbose_name = 'Пользователь'
-        verbose_name_plural = 'Пользователи'
-        ordering = ['name']
+        verbose_name = "Пользователь"
+        verbose_name_plural = "Пользователи"
+        ordering = ["name"]
 
     def __str__(self):
         return self.name

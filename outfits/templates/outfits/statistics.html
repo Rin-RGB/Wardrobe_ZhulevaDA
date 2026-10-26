@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}Статистика{% endblock %}
+
+{% block content %}
+<a href="{% url 'outfits:outfit_list' %}" class="btn btn-outline-secondary btn-back">← К образам</a>
+
+<h1>Статистика по категориям</h1>
+
+{% if stats %}
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Категория</th>
+            <th>Количество вещей</th>
+            <th>Общая стоимость</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for stat in stats %}
+        <tr>
+            <td>{{ stat.category_name }}</td>
+            <td>{{ stat.items_count }}</td>
+            <td>{{ stat.total_cost|floatformat:2 }} ₽</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<div class="alert alert-info">Данные отсутствуют.</div>
+{% endif %}
+{% endblock %}

@@ -18,14 +18,14 @@
                         {{ outfit.name|default:"Без названия" }}
                     </a>
                 </h5>
+
+                <!-- ИСПРАВЛЕНО: убраны лишние <p> и исправлено обращение к items_count -->
                 <p class="card-text">
-                    Владелец: <strong>{{ outfit.user.name }}</strong><br>
-                    Повод: {{ outfit.get_occasion_display }} | Сезон: {{ outfit.season }}
+                    <strong>Владелец:</strong> <a href="{% url 'accounts:user_detail' outfit.user_id %}">{{ outfit.user_name }}</a><br>
+                    <strong>Повод:</strong> {{ outfit.occasion_display }} | <strong>Сезон:</strong> {{ outfit.season }}<br>
+                    <strong>Вещей:</strong> {{ outfit.items_count }} | <strong>Стоимость:</strong> {{ outfit.total_cost|floatformat:2 }} ₽
                 </p>
-                <p>
-                    Вещей: {{ outfit.items.count }} |
-                    Стоимость: {{ outfit.total_cost|floatformat:2 }} ₽
-                </p>
+
                 {% if outfit.is_complete %}
                     <span class="outfit-status outfit-status-complete">Полный образ</span>
                 {% else %}
