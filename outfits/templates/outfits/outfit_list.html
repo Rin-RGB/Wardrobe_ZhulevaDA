@@ -1,46 +1,42 @@
-{% extends 'base.html' %}
-{% block title %}Образы{% endblock %}
+{% extends "base.html" %}
+
+{% block title %}Мои образы{% endblock %}
 
 {% block content %}
-<a href="{% url 'homepage:index' %}" class="btn btn-outline-secondary btn-back">← На главную</a>
+<h1 class="mb-4">Мои образы</h1>
 
-<h1>Образы</h1>
-<p>Всего образов: <strong>{{ outfits|length }}</strong></p>
-
-{% if outfits %}
 <div class="row">
     {% for outfit in outfits %}
-    <div class="col-md-6 mb-3">
-        <div class="card clothing-card">
+    <div class="col-md-6 mb-4">
+        <div class="card h-100 shadow-sm">
             <div class="card-body">
-                <h5 class="card-title">
-                    <a href="{% url 'outfits:outfit_detail' outfit.id %}">
-                        {{ outfit.name|default:"Без названия" }}
-                    </a>
-                </h5>
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h5 class="card-title mb-0">{{ outfit.name }}</h5>
+                    {% if outfit.is_complete %}
+                        <span class="badge bg-success">Полный</span>
+                    {% else %}
+                        <span class="badge bg-warning text-dark">Неполный</span>
+                    {% endif %}
+                </div>
 
-                <!-- ИСПРАВЛЕНО: убраны лишние <p> и исправлено обращение к items_count -->
-                <p class="card-text">
-                    <strong>Владелец:</strong> <a href="{% url 'accounts:user_detail' outfit.user_id %}">{{ outfit.user_name }}</a><br>
-                    <strong>Повод:</strong> {{ outfit.occasion_display }} | <strong>Сезон:</strong> {{ outfit.season }}<br>
-                    <strong>Вещей:</strong> {{ outfit.items_count }} | <strong>Стоимость:</strong> {{ outfit.total_cost|floatformat:2 }} ₽
+                <p class="card-text mb-1"><strong>Повод:</strong> {{ outfit.get_occasion_display }}</p>
+                <p class="card-text mb-1"><strong>Сезон:</strong> {{ outfit.season }}</p>
+                <p class="card-text mb-1"><strong>Вещей в образе:</strong> {{ outfit.items_count }}</p>
+                <p class="card-text fw-bold text-primary mt-2">
+                    Общая стоимость: {{ outfit.total_cost|floatformat:2 }} ₽
                 </p>
-
-                {% if outfit.is_complete %}
-                    <span class="outfit-status outfit-status-complete">Полный образ</span>
-                {% else %}
-                    <span class="outfit-status outfit-status-incomplete">Неполный</span>
-                {% endif %}
+            </div>
+            <div class="card-footer bg-transparent">
+                <a href="{% url 'outfits:outfit_detail' outfit.id %}" class="btn btn-sm btn-outline-primary">
+                    Подробнее
+                </a>
             </div>
         </div>
     </div>
     {% empty %}
     <div class="col-12">
-        <p class="alert alert-info">Образов пока нет.</p>
+        <p class="text-muted">У вас пока нет созданных образов.</p>
     </div>
     {% endfor %}
 </div>
-{% else %}
-<p class="alert alert-info">Образов пока нет.</p>
-{% endif %}
 {% endblock %}

@@ -1,21 +1,30 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
+
 {% block title %}{{ item.name }}{% endblock %}
 
 {% block content %}
-<a href="{% url 'wardrobe:clothing_list' %}" class="btn btn-outline-secondary mb-3">← Назад к списку</a>
+<div class="container mt-4">
+    <a href="{% url 'wardrobe:clothing_list' %}" class="btn btn-outline-secondary mb-3">← Назад к списку</a>
 
-<div class="card">
-    <div class="card-body">
-        <h2>{{ item.name }}</h2>
-        <p><strong>Владелец:</strong> <a href="{% url 'accounts:user_detail' item.user_id %}">{{ item.user_name }}</a></p>
-        <p><strong>Категория:</strong> {{ item.category|default:"—" }}</p>
-        <p><strong>Цвет:</strong> {{ item.color }}</p>
-        <p><strong>Сезон:</strong> {{ item.season_display }}</p>
-        <p><strong>Стиль:</strong> {{ item.style_display }}</p>
-        <p><strong>Цена:</strong> {{ item.price }} ₽</p>
-        <p><strong>Количество:</strong> {{ item.quantity }}</p>
-        <p><strong>Общая стоимость:</strong> {{ item.total_cost|floatformat:2 }} ₽</p>
-        <p><strong>Ценовая категория:</strong> {{ item.get_price_category }}</p>
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h1 class="card-title h3">{{ item.name }}</h1>
+            <hr>
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Категория:</strong> {{ item.category.name|default:"Не указана" }}</p>
+                    <p><strong>Цвет:</strong> {{ item.color }}</p>
+                    <p><strong>Сезон:</strong> {{ item.get_season_display }}</p>
+                    <p><strong>Стиль:</strong> {{ item.get_style_display }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Цена за единицу:</strong> {{ item.price|floatformat:2 }} ₽</p>
+                    <p><strong>Количество:</strong> {{ item.quantity }} шт.</p>
+                    <p class="h5 text-primary"><strong>Общая стоимость:</strong> {{ item.total_cost|floatformat:2 }} ₽</p>
+                    <p class="text-muted"><small>Добавлено: {{ item.created_at|date:"d.m.Y" }}</small></p>
+                </div
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}

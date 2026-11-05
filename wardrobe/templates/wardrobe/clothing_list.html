@@ -1,39 +1,81 @@
-{% extends 'base.html' %}
-{% block title %}Все вещи{% endblock %}
+{% extends "base.html" %}
+
+{% block title %}Мой гардероб{% endblock %}
 
 {% block content %}
-<a href="{% url 'homepage:index' %}" class="btn btn-outline-secondary btn-back">← На главную</a>
-<a href="{% url 'wardrobe:available_items' %}" class="btn btn-primary btn-back">Поиск вещей</a>
+<h1 class="mb-4">Мои вещи</h1>
 
-<h1>Все вещи</h1>
-<p>Всего позиций: <strong>{{ items|length }}</strong></p>
+<div class="row">
+    {% for item in items %}
+    <div class="col-md-4 mb-4">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">{{ item.name }}</h5>
+                <p class="card-text mb-1">
+                    <strong>Категория:</strong> {{ item.category.name|default:"Не указана" }}
+                </p>
+                <p class="card-text mb-1">
+                    <strong>Цвет:</strong> {{ item.color }}
+                </p>
+                <p class="card-text mb-1">
+                    <strong>Сезон:</strong> {{ item.get_season_display }}
+                </p>
+                <p class="card-text mb-1">
+                    <strong>Стиль:</strong> {{ item.get_style_display }}
+                </p>
+                <p class="card-text mb-1">
+                    <strong>Цена:</strong> {{ item.price|floatformat:2 }} ₽ (x{{ item.quantity }})
+                </p>
+                <p class="card-text fw-bold text-primary">
+                    Итого: {{ item.total_cost|floatformat:2 }} ₽
+                </p>
+            </div>
+            <div class="card-footer bg-transparent">
+                <a href="{% url 'wardrobe:clothing_detail' item.id %}" class="btn btn-sm btn-outline-primary">Подробнее</a>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <p class="text-muted">В гардеробе пока нет вещей.</p>
+    </div>
+    {% endfor %}
+</div>
 
-{% if items %}
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>Название</th><th>Владелец</th><th>Категория</th>
-            <th>Цвет</th><th>Сезон</th><th>Стиль</th><th>Цена</th><th>Кол-во</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for item in items %}
-        <tr>
-            <td><a href="{% url 'wardrobe:clothing_detail' item.id %}">{{ item.name|default:"Без названия" }}</a></td>
-            <td>{{ item.user_name }}</td>
-            <td>{{ item.category_name|default:"—" }}</td>
-            <td>{{ item.color }}</td>
-            <td>{{ item.season_display }}</td>
-            <td>{{ item.style_display }}</td>
-            <td>{{ item.price|floatformat:2 }} ₽</td>
-            <td>{{ item.quantity }}</td>
-        </tr>
-        {% empty %}
-        <tr><td colspan="8" class="text-center">Вещей пока нет.</td></tr>
+<!-- Блок пагинации -->
+{% if page_obj.paginator.num_pages > 1 %}
+<nav aria-label="Навигация по страницам" class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+        <li class="page-item">
+            <!-- Примечание: если тег {% querystring %} вызовет ошибку "Invalid block tag",
+                 замени эту строку на: href="?page={{ page_obj.previous_page_number }}" -->
+            <a class="page-link" href="{% querystring page=page_obj.previous_page_number %}">Назад</a>
+        </li>
+        {% else %}
+        <li class="page-item disabled"><span class="page-link">Назад</span></li>
+        {% endif %}
+
+        {% for page_number in page_obj.paginator.page_range %}
+            {% if page_number == page_obj.number %}
+            <li class="page-item active" aria-current="page">
+                <span class="page-link">{{ page_number }}</span>
+            </li>
+            {% else %}
+            <li class="page-item">
+                <a class="page-link" href="{% querystring page=page_number %}">{{ page_number }}</a>
+            </li>
+            {% endif %}
         {% endfor %}
-    </tbody>
-</table>
-{% else %}
-<div class="alert alert-info">Вещей пока нет.</div>
+
+        {% if page_obj.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="{% querystring page=page_obj.next_page_number %}">Далее</a>
+        </li>
+        {% else %}
+        <li class="page-item disabled"><span class="page-link">Далее</span></li>
+        {% endif %}
+    </ul>
+</nav>
 {% endif %}
 {% endblock %}

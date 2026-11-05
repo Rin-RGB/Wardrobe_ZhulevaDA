@@ -1,127 +1,72 @@
-import sqlite3
+from django.shortcuts import render, get_object_or_404
+from django.db.models import Q
+from wardrobe.models import ClothingItem, Category
+from accounts.models import WardrobeUser
+
+from django.core.paginator import Paginator
+
 from django.shortcuts import render
-from db.database import get_connection
+from django.core.paginator import Paginator
+from wardrobe.models import ClothingItem
 
 
 def clothing_list(request):
-    """Список всех вещей из SQLite."""
-    conn = get_connection()
-    conn.row_factory = sqlite3.Row
-    items = conn.execute(
-        """
-        SELECT ci.id, ci.name, ci.color,
-               ci.price, ci.quantity,
-               cat.name AS category_name, u.name AS user_name,
-               CASE ci.season
-                   WHEN 'summer' THEN 'Лето'
-                   WHEN 'winter' THEN 'Зима'
-                   WHEN 'demiseason' THEN 'Демисезон'
-                   WHEN 'all_season' THEN 'Всесезон'
-                   ELSE ci.season
-               END AS season_display,
-               CASE ci.style
-                   WHEN 'casual' THEN 'Повседневный'
-                   WHEN 'formal' THEN 'Деловой'
-                   WHEN 'sport' THEN 'Спортивный'
-                   WHEN 'street' THEN 'Уличный'
-                   WHEN 'classic' THEN 'Классический'
-                   WHEN 'romantic' THEN 'Романтический'
-                   ELSE ci.style
-               END AS style_display
-        FROM clothing_items ci
-        LEFT JOIN categories cat ON ci.category_id = cat.id
-        JOIN users u ON ci.user_id = u.id
-        ORDER BY ci.name
-        """
-    ).fetchall()
-    conn.close()
-    return render(request, "wardrobe/clothing_list.html", {"items": items})
+    # Базовый запрос + select_related (пункт 19)
+    items = ClothingItem.objects.select_related('category', 'user')
 
+    # Пункт 27: exclude() - исключаем вещи, которых нет в наличии
+    items = items.exclude(quantity=0)
+
+    # Пункт 13: Динамическая сортировка по параметру запроса
+    sort = request.GET.get('sort', 'name')
+    sort_fields = {
+        'name': 'name',
+        'price': 'price',
+        '-price': '-price',
+        'newest': '-created_at',
+    }
+    # Защита от произвольного ввода (требование методички)
+    order_by_field = sort_fields.get(sort, 'name')
+    items = items.order_by(order_by_field)
+
+    # Пункт 22, 23: Пагинация
+    paginator = Paginator(items, 6)
+    page_obj = paginator.get_page(request.GET.get('page'))
+
+    return render(request, "wardrobe/clothing_list.html", {
+        "page_obj": page_obj,
+        "items": page_obj,
+        "sort": sort,  # Передаем в шаблон, чтобы подсветить активную сортировку
+    })
 
 def clothing_detail(request, item_id):
-    conn = get_connection()
-    conn.row_factory = sqlite3.Row
-    item = conn.execute(
-        """
-        SELECT ci.*, cat.name AS category_name, 
-               u.id AS user_id, u.name AS user_name,
-               CASE ci.season
-                   WHEN 'summer' THEN 'Лето'
-                   WHEN 'winter' THEN 'Зима'
-                   WHEN 'demiseason' THEN 'Демисезон'
-                   WHEN 'all_season' THEN 'Всесезон'
-                   ELSE ci.season
-               END AS season_display,
-               CASE ci.style
-                   WHEN 'casual' THEN 'Повседневный'
-                   WHEN 'formal' THEN 'Деловой'
-                   WHEN 'sport' THEN 'Спортивный'
-                   WHEN 'street' THEN 'Уличный'
-                   WHEN 'classic' THEN 'Классический'
-                   WHEN 'romantic' THEN 'Романтический'
-                   ELSE ci.style
-               END AS style_display
-        FROM clothing_items ci
-        LEFT JOIN categories cat ON ci.category_id = cat.id
-        JOIN users u ON ci.user_id = u.id
-        WHERE ci.id = ?
-        """,
-        [item_id],
-    ).fetchone()
-    conn.close()
-
-    if item is None:
-        return render(request, "wardrobe/404.html", status=404)
-
+    """Детальная страница вещи."""
+    # ORM-выражение 2: Получение одного объекта с обработкой 404 + select_related
+    item = get_object_or_404(
+        ClothingItem.objects.select_related('category', 'user'),
+        pk=item_id
+    )
     return render(request, "wardrobe/clothing_detail.html", {"item": item})
 
 
 def available_items(request):
-    """Поиск вещей по сезону и стилю."""
+    """Поиск вещей по сезону и стилю с фильтрацией."""
     season = request.GET.get("season")
     style = request.GET.get("style")
-    conn = get_connection()
-    conn.row_factory = sqlite3.Row
 
-    query = """
-        SELECT ci.name, ci.color, ci.price, 
-               cat.name AS category_name,
-               CASE ci.season
-                   WHEN 'summer' THEN 'Лето'
-                   WHEN 'winter' THEN 'Зима'
-                   WHEN 'demiseason' THEN 'Демисезон'
-                   WHEN 'all_season' THEN 'Всесезон'
-                   ELSE ci.season
-               END AS season_display,
-               CASE ci.style
-                   WHEN 'casual' THEN 'Повседневный'
-                   WHEN 'formal' THEN 'Деловой'
-                   WHEN 'sport' THEN 'Спортивный'
-                   WHEN 'street' THEN 'Уличный'
-                   WHEN 'classic' THEN 'Классический'
-                   WHEN 'romantic' THEN 'Романтический'
-                   ELSE ci.style
-               END AS style_display
-        FROM clothing_items ci
-        LEFT JOIN categories cat ON ci.category_id = cat.id
-        WHERE 1=1
-    """
+    # ORM-выражение 3: Базовый QuerySet
+    queryset = ClothingItem.objects.select_related('category').order_by('price')
 
-    params = []
+    # ORM-выражение 4: Фильтрация по одному условию
     if season:
-        query += " AND ci.season = ?"
-        params.append(season)
+        queryset = queryset.filter(season=season)
+
+    # ORM-выражение 5: Фильтрация по нескольким условиям (цепочка filter)
     if style:
-        query += " AND ci.style = ?"
-        params.append(style)
-
-    query += " ORDER BY ci.price"
-
-    items = conn.execute(query, params).fetchall()
-    conn.close()
+        queryset = queryset.filter(style=style)
 
     return render(request, "wardrobe/available.html", {
-        "items": items,
+        "items": queryset,
         "season": season,
         "style": style,
     })
