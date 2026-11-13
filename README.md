@@ -28,4 +28,20 @@
 - `ClothingItem` — вещь (связана с `WardrobeUser` через FK и с `Category` через FK)
 - `Outfit` — образ (связан с `WardrobeUser` через FK, с `ClothingItem` через M2M)
 
-## Структура шаблонов
+## Работа с базой данных (Django ORM)
+
+Проект полностью переведён на Django ORM. Взаимодействие с БД осуществляется через модели:
+- `WardrobeUser` ↔ `ClothingItem`: связь **один-ко-многим** (`ForeignKey`, `on_delete=CASCADE`, `related_name="clothing_items"`).
+- `Category` ↔ `ClothingItem`: связь **один-ко-многим** (`ForeignKey`, `on_delete=SET_NULL`).
+- `Outfit` ↔ `ClothingItem`: связь **многие-ко-многим** (`ManyToManyField`, `related_name="in_outfits"`).
+
+### Команды для управления БД:
+```bash
+# Создание файлов миграций после изменения моделей
+python manage.py makemigrations
+
+# Применение миграций к базе данных
+python manage.py migrate
+
+# Запуск интерактивной оболочки для ORM-запросов
+python manage.py shell

@@ -1,23 +1,22 @@
 from django.shortcuts import render, get_object_or_404
-from django.db.models import Q
-from wardrobe.models import ClothingItem, Category
-from accounts.models import WardrobeUser
-
-from django.core.paginator import Paginator
-
 from django.shortcuts import render
 from django.core.paginator import Paginator
+from django.db.models import Q
 from wardrobe.models import ClothingItem
 
 
 def clothing_list(request):
-    # Базовый запрос + select_related (пункт 19)
-    items = ClothingItem.objects.select_related('category', 'user')
+    # 1. Базовый запрос + select_related + exclude
+    items = ClothingItem.objects.select_related('category', 'user').exclude(quantity=0)
 
-    # Пункт 27: exclude() - исключаем вещи, которых нет в наличии
-    items = items.exclude(quantity=0)
+    # 2. ПОИСК (закрывает пункты 7 и 8 методички)
+    search_query = request.GET.get('q', '').strip()
+    if search_query:
+        items = items.filter(
+            Q(name__icontains=search_query) | Q(color__icontains=search_query)
+        )
 
-    # Пункт 13: Динамическая сортировка по параметру запроса
+    # 3. Динамическая сортировка
     sort = request.GET.get('sort', 'name')
     sort_fields = {
         'name': 'name',
@@ -25,20 +24,18 @@ def clothing_list(request):
         '-price': '-price',
         'newest': '-created_at',
     }
-    # Защита от произвольного ввода (требование методички)
-    order_by_field = sort_fields.get(sort, 'name')
-    items = items.order_by(order_by_field)
+    items = items.order_by(sort_fields.get(sort, 'name'))
 
-    # Пункт 22, 23: Пагинация
+    # 4. Пагинация
     paginator = Paginator(items, 6)
     page_obj = paginator.get_page(request.GET.get('page'))
 
     return render(request, "wardrobe/clothing_list.html", {
         "page_obj": page_obj,
         "items": page_obj,
-        "sort": sort,  # Передаем в шаблон, чтобы подсветить активную сортировку
+        "sort": sort,
+        "search_query": search_query,  # <-- Передаём в шаблон
     })
-
 def clothing_detail(request, item_id):
     """Детальная страница вещи."""
     # ORM-выражение 2: Получение одного объекта с обработкой 404 + select_related
