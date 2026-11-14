@@ -1,11 +1,52 @@
 from django.db import models
-
+from django.utils.text import slugify
 from accounts.models import WardrobeUser
+
+
+class SeasonChoices(models.TextChoices):
+    SUMMER = 'summer', 'Лето'
+    WINTER = 'winter', 'Зима'
+    DEMISEASON = 'demiseason', 'Демисезон'
+    ALL_SEASON = 'all_season', 'Всесезон'
+
+
+class StyleChoices(models.TextChoices):
+    CASUAL = 'casual', 'Повседневный'
+    FORMAL = 'formal', 'Деловой'
+    SPORT = 'sport', 'Спортивный'
+    STREET = 'street', 'Уличный'
+    CLASSIC = 'classic', 'Классический'
+    ROMANTIC = 'romantic', 'Романтический'
+
+
+class ClothingItemQuerySet(models.QuerySet):
+    """Кастомный QuerySet для фильтрации вещей (Критерий 9)"""
+
+    def for_season(self, season):
+        return self.filter(season=season)
+
+    def by_style(self, style):
+        return self.filter(style=style)
+
+    def in_stock(self):
+        return self.filter(quantity__gt=0)
+
+
+class ClothingItemManager(models.Manager):
+    """Кастомный менеджер, подключающий QuerySet"""
+
+    def get_queryset(self):
+        return ClothingItemQuerySet(self.model, using=self._db)
+
+    def for_season(self, season):
+        return self.get_queryset().for_season(season)
+
+    def by_style(self, style):
+        return self.get_queryset().by_style(style)
 
 
 class Category(models.Model):
     """Категория одежды (верх, низ, обувь и т. п.)."""
-
     name = models.CharField("Название", max_length=50, unique=True)
 
     class Meta:
@@ -19,22 +60,6 @@ class Category(models.Model):
 
 class ClothingItem(models.Model):
     """Единица одежды. Принадлежит пользователю через ForeignKey."""
-
-    SEASON_CHOICES = [
-        ("summer", "Лето"),
-        ("winter", "Зима"),
-        ("demiseason", "Демисезон"),
-        ("all_season", "Всесезон"),
-    ]
-    STYLE_CHOICES = [
-        ("casual", "Повседневный"),
-        ("formal", "Деловой"),
-        ("sport", "Спортивный"),
-        ("street", "Уличный"),
-        ("classic", "Классический"),
-        ("romantic", "Романтический"),
-    ]
-
     user = models.ForeignKey(
         WardrobeUser,
         on_delete=models.CASCADE,
@@ -49,18 +74,19 @@ class ClothingItem(models.Model):
         verbose_name="Категория",
     )
     name = models.CharField("Название", max_length=100)
+    slug = models.SlugField("URL-адрес", max_length=100, unique=True, blank=True)  # Критерий 15
     color = models.CharField("Цвет", max_length=50)
     season = models.CharField(
         "Сезон",
         max_length=20,
-        choices=SEASON_CHOICES,
-        default="all_season",
+        choices=SeasonChoices.choices,
+        default=SeasonChoices.ALL_SEASON,
     )
     style = models.CharField(
         "Стиль",
         max_length=20,
-        choices=STYLE_CHOICES,
-        default="casual",
+        choices=StyleChoices.choices,
+        default=StyleChoices.CASUAL,
     )
     price = models.DecimalField(
         "Цена",
@@ -71,6 +97,8 @@ class ClothingItem(models.Model):
     quantity = models.PositiveIntegerField("Количество", default=1)
     created_at = models.DateTimeField("Дата добавления", auto_now_add=True)
 
+    objects = ClothingItemManager()  # Подключение кастомного менеджера
+
     class Meta:
         verbose_name = "Вещь"
         verbose_name_plural = "Вещи"
@@ -79,6 +107,28 @@ class ClothingItem(models.Model):
     def __str__(self):
         return f"{self.name} ({self.user.name})"
 
+    def save(self, *args, **kwargs):
+        """Автогенерация уникального slug с поддержкой кириллицы."""
+        if not self.slug or self.slug.startswith('-'):
+            # Генерируем базовый slug
+            base_slug = slugify(self.name, allow_unicode=True)
+            if not base_slug:
+                base_slug = f"item-{self.pk or 'new'}"
+
+            slug = base_slug
+            counter = 1
+            # Проверяем уникальность, исключая текущий объект
+            while ClothingItem.objects.filter(slug=slug).exclude(pk=self.pk).exists():
+                slug = f"{base_slug}-{counter}"
+                counter += 1
+            self.slug = slug
+        super().save(*args, **kwargs)
+
+    def get_absolute_url(self):
+        """Возвращает URL для детальной страницы вещи (Критерий 15)"""
+        from django.urls import reverse
+        return reverse('wardrobe:item_detail', kwargs={'slug': self.slug})
+
     @property
     def total_cost(self):
         """Общая стоимость позиции (цена × количество)."""
@@ -86,11 +136,11 @@ class ClothingItem(models.Model):
 
     @property
     def season_display_ru(self):
-        return dict(self.SEASON_CHOICES).get(self.season, self.season)
+        return SeasonChoices(self.season).label
 
     @property
     def style_display_ru(self):
-        return dict(self.STYLE_CHOICES).get(self.style, self.style)
+        return StyleChoices(self.style).label
 
     def get_price_category(self):
         if self.price <= 0:

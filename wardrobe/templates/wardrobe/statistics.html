@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+
+{% block title %}Статистика гардероба{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Статистика гардероба</h1>
+
+<!-- Общая статистика (Критерий 17) -->
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+        <h3 class="mb-0 h5">Общая статистика</h3>
+    </div>
+    <div class="card-body">
+        <div class="row text-center">
+            <div class="col-md-3">
+                <h4>{{ total_stats.total_items }}</h4>
+                <p class="text-muted">Всего вещей</p>
+            </div>
+            <div class="col-md-3">
+                <h4>{{ total_stats.total_quantity|default:0 }}</h4>
+                <p class="text-muted">Общее количество</p>
+            </div>
+            <div class="col-md-3">
+                <h4>{{ total_stats.total_cost|default:0|floatformat:2 }} ₽</h4>
+                <p class="text-muted">Общая стоимость</p>
+            </div>
+            <div class="col-md-3">
+                <h4>{{ total_stats.avg_price|default:0|floatformat:2 }} ₽</h4>
+                <p class="text-muted">Средняя цена</p>
+            </div>
+        </div>
+        <hr>
+        <div class="row">
+            <div class="col-md-4">
+                <p class="mb-0"><strong>Зимних вещей:</strong> {{ total_stats.winter_count }}</p>
+            </div>
+            <div class="col-md-4">
+                <p class="mb-0"><strong>Летних вещей:</strong> {{ total_stats.summer_count }}</p>
+            </div>
+            <div class="col-md-4">
+                <p class="mb-0"><strong>Дорогих вещей (≥5000 ₽):</strong> {{ total_stats.expensive_count }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Статистика по категориям (Критерий 18) -->
+<div class="card mb-4">
+    <div class="card-header bg-success text-white">
+        <h3 class="mb-0 h5">Статистика по категориям</h3>
+    </div>
+    <div class="card-body">
+        <table class="table table-striped mb-0">
+            <thead>
+                <tr>
+                    <th>Категория</th>
+                    <th>Количество вещей</th>
+                    <th>Общая стоимость</th>
+                    <th>Средняя цена</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cat in category_stats %}
+                <tr>
+                    <td>{{ cat.category__name|default:"Без категории" }}</td>
+                    <td>{{ cat.items_count }}</td>
+                    <td>{{ cat.total_cost|default:0|floatformat:2 }} ₽</td>
+                    <td>{{ cat.avg_price|default:0|floatformat:2 }} ₽</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="text-center text-muted">Нет данных</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Статистика по сезонам -->
+<div class="card mb-4">
+    <div class="card-header bg-info text-white">
+        <h3 class="mb-0 h5">Статистика по сезонам</h3>
+    </div>
+    <div class="card-body">
+        <table class="table table-striped mb-0">
+            <thead>
+                <tr>
+                    <th>Сезон</th>
+                    <th>Количество вещей</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for season in season_stats %}
+                <tr>
+                    <td>{{ season.label }}</td>
+                    <td>{{ season.items_count }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="2" class="text-center text-muted">Нет данных</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Статистика по стилям -->
+<div class="card mb-4">
+    <div class="card-header bg-warning">
+        <h3 class="mb-0 h5">Статистика по стилям</h3>
+    </div>
+    <div class="card-body">
+        <table class="table table-striped mb-0">
+            <thead>
+                <tr>
+                    <th>Стиль</th>
+                    <th>Количество вещей</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for style in style_stats %}
+                <tr>
+                    <td>{{ style.label }}</td>
+                    <td>{{ style.items_count }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="2" class="text-center text-muted">Нет данных</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<a href="{% url 'wardrobe:clothing_list' %}" class="btn btn-secondary">&larr; Назад к списку</a>
+{% endblock %}

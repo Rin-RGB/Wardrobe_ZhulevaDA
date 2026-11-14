@@ -13,13 +13,28 @@
 <body>
     {% include "includes/navigation.html" %}
 
-    <main class="container">
+    <main class="container mt-4">
+        <!-- КОНТЕКСТНЫЙ ПРОЦЕССОР (Критерий 23): Глобальный информационный блок -->
+        <div class="alert alert-light border d-flex justify-content-between align-items-center mb-4">
+            <span>👗 Всего вещей в гардеробе: <strong>{{ total_items_count }}</strong></span>
+            <a href="{% url 'wardrobe:statistics' %}" class="btn btn-sm btn-outline-primary">📊 Подробная статистика</a>
+        </div>
+
         {% block content %}{% endblock %}
     </main>
 
-    <footer class="site-footer">
-        <div class="container">
-            <p class="mb-0">&copy; <span id="current-year"></span> Умный гардероб</p>
+    <footer class="site-footer mt-5 py-3 bg-light">
+        <div class="container text-center">
+            <p class="mb-0 text-muted">
+                &copy; <span id="current-year"></span> Умный гардероб.
+                <!-- Можно вывести и категории в футер для наглядности -->
+                Доступные категории:
+                {% for cat in all_categories %}
+                    {{ cat.name }}{% if not forloop.last %}, {% endif %}
+                {% empty %}
+                    не заданы
+                {% endfor %}
+            </p>
         </div>
     </footer>
 

@@ -3,7 +3,10 @@
 {% block title %}Мой гардероб{% endblock %}
 
 {% block content %}
-<h1 class="mb-4">Мои вещи</h1>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Мои вещи</h1>
+    <a href="{% url 'wardrobe:statistics' %}" class="btn btn-outline-primary">📊 Статистика</a>
+</div>
 
 <!-- Форма поиска и сортировки -->
 <form method="get" class="mb-4">
@@ -38,7 +41,7 @@
 </form>
 
 <div class="row">
-    {% for item in items %}
+    {% for item in page_obj %}
     <div class="col-md-4 mb-4">
         <div class="card h-100 shadow-sm">
             <div class="card-body">
@@ -63,26 +66,25 @@
                 </p>
             </div>
             <div class="card-footer bg-transparent">
-                <a href="{% url 'wardrobe:clothing_detail' item.id %}" class="btn btn-sm btn-outline-primary">Подробнее</a>
+                <!-- Используем slug вместо id (Критерий 15, 27) -->
+                <a href="{% url 'wardrobe:clothing_detail' item.slug %}" class="btn btn-sm btn-outline-primary">Подробнее</a>
             </div>
         </div>
     </div>
     {% empty %}
     <div class="col-12">
-        <p class="text-muted">В гардеробе пока нет вещей.</p>
+        <p class="text-muted">В гардеробе пока нет вещей, соответствующих запросу.</p>
     </div>
     {% endfor %}
 </div>
 
-<!-- Блок пагинации -->
+<!-- Блок пагинации (безопасная передача параметров, Критерий 21) -->
 {% if page_obj.paginator.num_pages > 1 %}
 <nav aria-label="Навигация по страницам" class="mt-4">
     <ul class="pagination justify-content-center">
         {% if page_obj.has_previous %}
         <li class="page-item">
-            <!-- Примечание: если тег {% querystring %} вызовет ошибку "Invalid block tag",
-                 замени эту строку на: href="?page={{ page_obj.previous_page_number }}" -->
-            <a class="page-link" href="{% querystring page=page_obj.previous_page_number %}">Назад</a>
+            <a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{ search_query }}&sort={{ sort }}">Назад</a>
         </li>
         {% else %}
         <li class="page-item disabled"><span class="page-link">Назад</span></li>
@@ -95,14 +97,14 @@
             </li>
             {% else %}
             <li class="page-item">
-                <a class="page-link" href="{% querystring page=page_number %}">{{ page_number }}</a>
+                <a class="page-link" href="?page={{ page_number }}&q={{ search_query }}&sort={{ sort }}">{{ page_number }}</a>
             </li>
             {% endif %}
         {% endfor %}
 
         {% if page_obj.has_next %}
         <li class="page-item">
-            <a class="page-link" href="{% querystring page=page_obj.next_page_number %}">Далее</a>
+            <a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{ search_query }}&sort={{ sort }}">Далее</a>
         </li>
         {% else %}
         <li class="page-item disabled"><span class="page-link">Далее</span></li>
